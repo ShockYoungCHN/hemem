@@ -44,6 +44,18 @@ fi
 
 # 2. Build Hoard
 if [ -d "Hoard" ]; then
+    echo ">>> Patching Hoard for compatibility..."
+    # Fix GCC 13 inlining error in libhoard.cpp
+    sed -i 's/void \* __attribute__((always_inline)) xxmalloc/inline void \* xxmalloc/g' Hoard/src/source/libhoard.cpp
+    sed -i 's/void __attribute__((flatten)) __attribute__((always_inline)) xxfree/inline void __attribute__((flatten)) xxfree/g' Hoard/src/source/libhoard.cpp
+    sed -i 's/void \* __attribute__((always_inline)) xxmemalign/inline void \* xxmemalign/g' Hoard/src/source/libhoard.cpp
+    
+    # Fix MyHashMap missing type error in alignedmmap.h
+    # Wrap the problematic typedefs in #if TRACK_SIZE
+    if ! grep -q "if TRACK_SIZE" Hoard/src/include/util/alignedmmap.h; then
+        sed -i '/\/\/ Manage information in a map/,/typedef MyHashMap/ { /typedef MyHashMap/ s/$/\n#endif/; /Manage information/ s/^/#if TRACK_SIZE\n/ }' Hoard/src/include/util/alignedmmap.h
+    fi
+
     echo ">>> Building Hoard..."
     cd Hoard
     # Force GCC as clang often fails with missing standard headers
