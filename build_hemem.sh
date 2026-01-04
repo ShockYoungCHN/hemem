@@ -11,15 +11,15 @@ set -e
 if [[ "$1" == "--install-deps" ]]; then
     echo ">>> Installing prerequisites..."
     sudo apt update
-    sudo apt install -y gcc-8 g++-8 ndctl build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot dwarves
+    sudo apt install -y gcc-9 g++-9 ndctl build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot dwarves
     
-    # Configure gcc-8 as an alternative
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8
-    echo ">>> Prerequisites installed. Using gcc-8 for the build."
+    # Configure gcc-9 as an alternative
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+    echo ">>> Prerequisites installed. Using gcc-9 for the build."
     
-    # Force use of gcc-8 for the rest of the script
-    export CC=gcc-8
-    export CXX=g++-8
+    # Force use of gcc-9 for the rest of the script
+    export CC=gcc-9
+    export CXX=g++-9
 fi
 
 echo ">>> Initializing git submodules..."
@@ -46,9 +46,9 @@ fi
 if [ -d "Hoard" ]; then
     echo ">>> Building Hoard..."
     cd Hoard
-    # Respect the CC and CXX environment variables (preferably set to gcc-8)
-    export CC=${CC:-gcc}
-    export CXX=${CXX:-g++}
+    # Respect the CC and CXX environment variables (preferably set to gcc-9)
+    export CC=${CC:-gcc-9}
+    export CXX=${CXX:-g++-9}
     
     cd src
     # Clean previous attempt
