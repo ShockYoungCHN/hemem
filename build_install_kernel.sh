@@ -6,7 +6,24 @@ set -e
 # 警告：此操作会修改系统引导配置。建议在虚拟机或非生产环境测试。
 
 KERNEL_DIR="linux"
-THREADS=$(nproc)
+THREADS=32
+
+# 0. Install Prerequisites (Optional, same as build_hemem.sh)
+if [[ "$1" == "--install-deps" ]]; then
+    echo ">>> Installing prerequisites for kernel build..."
+    sudo apt update
+    sudo apt install -y gcc-8 g++-8 build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot dwarves
+    
+    # Configure gcc-8 as an alternative
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8
+fi
+
+# Force use of GCC 8 for kernel build
+export CC=gcc-8
+export CXX=g++-8
+# Kernel build system often uses HOSTCC for host tools
+export HOSTCC=gcc-8
+export HOSTCXX=g++-8
 
 if [ ! -d "$KERNEL_DIR" ]; then
     echo ">>> 错误：未找到 '$KERNEL_DIR' 目录。请确保在 HeMem 根目录下运行此脚本。"
