@@ -9,17 +9,11 @@ set -e
 # 0. Install Prerequisites (Requires sudo)
 # Run with --install-deps to execute these commands
 if [[ "$1" == "--install-deps" ]]; then
-    echo ">>> Installing prerequisites..."
-    sudo apt update
-    sudo apt install -y gcc-9 g++-9 ndctl build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot dwarves
+    ./install_deps.sh
     
-    # Configure gcc-9 as an alternative
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9
-    echo ">>> Prerequisites installed. Using gcc-9 for the build."
-    
-    # Force use of gcc-9 for the rest of the script
-    export CC=gcc-9
-    export CXX=g++-9
+    # Force use of gcc-8 for the rest of the script
+    export CC=gcc-8
+    export CXX=g++-8
 fi
 
 echo ">>> Initializing git submodules..."
@@ -46,15 +40,15 @@ fi
 if [ -d "Hoard" ]; then
     echo ">>> Building Hoard..."
     cd Hoard
-    # Respect the CC and CXX environment variables (preferably set to gcc-9)
-    export CC=${CC:-gcc-9}
-    export CXX=${CXX:-g++-9}
+    # Respect the CC and CXX environment variables (preferably set to gcc-8)
+    export CC=${CC:-gcc-8}
+    export CXX=${CXX:-g++-8}
     
     cd src
     # Clean previous attempt
     make clean || true
-    # Explicitly call the linux gcc target with CXX override
-    make Linux-gcc-x86_64 CXX=$CXX
+    # Explicitly call the linux gcc target with CXX override and fixed CPPFLAGS
+    make Linux-gcc-x86_64 CXX=$CXX CPPFLAGS="-std=c++14 -O3 -DNDEBUG -ffast-math -fno-builtin-malloc -Wall -Wextra -Wshadow -Wconversion -Wuninitialized -fPIC -D_REENTRANT=1 -fno-semantic-interposition"
     cd ../..
     echo ">>> Hoard build complete."
 else

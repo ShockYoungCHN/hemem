@@ -10,20 +10,15 @@ THREADS=32
 
 # 0. Install Prerequisites (Optional, same as build_hemem.sh)
 if [[ "$1" == "--install-deps" ]]; then
-    echo ">>> Installing prerequisites for kernel build..."
-    sudo apt update
-    sudo apt install -y gcc-9 g++-9 build-essential libncurses-dev bison flex libssl-dev libelf-dev fakeroot dwarves
-    
-    # Configure gcc-9 as an alternative
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+    ./install_deps.sh
 fi
 
-# Force use of GCC 9 for kernel build
-export CC=gcc-9
-export CXX=g++-9
+# Force use of GCC 8 for kernel build
+export CC=gcc-8
+export CXX=g++-8
 # Kernel build system often uses HOSTCC for host tools
-export HOSTCC=gcc-9
-export HOSTCXX=g++-9
+export HOSTCC=gcc-8
+export HOSTCXX=g++-8
 
 if [ ! -d "$KERNEL_DIR" ]; then
     echo ">>> 错误：未找到 '$KERNEL_DIR' 目录。请确保在 HeMem 根目录下运行此脚本。"
@@ -46,6 +41,20 @@ if [ ! -f .config ]; then
     
     # 自动更新配置以适应新内核版本（一路回车接受默认值）
     echo ">>> 更新内核配置 (olddefconfig)..."
+    make olddefconfig
+
+    # 清除证书配置以避免报错
+    echo ">>> 清除证书配置以避免报错..."
+    ./scripts/config --set-str SYSTEM_TRUSTED_KEYS ""
+    ./scripts/config --set-str SYSTEM_REVOCATION_KEYS ""
+
+    # 禁用调试信息以节省空间
+    echo ">>> 禁用调试信息 (CONFIG_DEBUG_INFO) 以节省空间..."
+    ./scripts/config --disable DEBUG_INFO
+    ./scripts/config --disable DEBUG_INFO_SPLIT
+    ./scripts/config --disable DEBUG_INFO_DWARF4
+    ./scripts/config --disable DEBUG_INFO_BTF
+
     make olddefconfig
 fi
 
